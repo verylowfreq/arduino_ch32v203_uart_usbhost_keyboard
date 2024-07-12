@@ -2,12 +2,10 @@
 
 Based on https://github.com/openwch/ch32v20x/tree/main/EVT/EXAM/USB/USBFS/HOST_KM
 
-Tested on CH32V203C8T6 ("SUZUNO32RV")
+Tested on Suzuno32RV (CH32V203C8T6)
 
-## How to test / 使い方
+これは、Suzuno32RVでUSBキーボードの入力を受け取るサンプルコードです。Type-Aコネクタに接続されたキーボードの入力を受け取り、情報をシリアルポートに出力します。
 
- - Connect WCH-LinkE to the MCU.
- - Power on
- - Connect your USB keyboard to the USBFS port
- - Type your keyboard
- - Message dumped in UART
+Arduino IDE、arduino_core_ch32_sz 1.0.4+sz4 で動作確認しています。
+
+シリアル通信はGPIOに引き出されたハードウェアシリアルも、TinyUSBによるUSBシリアルも、どちらも利用できます。
