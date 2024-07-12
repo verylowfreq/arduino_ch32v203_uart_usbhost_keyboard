@@ -63,9 +63,9 @@ extern void KB_AnalyzeKeyValue( uint8_t index, uint8_t intf_num, uint8_t *pbuf, 
 extern uint8_t KB_SetReport( uint8_t index, uint8_t ep0_size, uint8_t intf_num );
 extern void USBH_MainDeal( void );
 
-
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

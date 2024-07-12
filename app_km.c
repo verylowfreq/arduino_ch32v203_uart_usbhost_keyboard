@@ -10,15 +10,14 @@
 * microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "stdbool.h"
 #include "stdint.h"
 
 // Global variable for USBHost_Keyboard
 extern int is_usbkeyboard_connected;
 extern uint8_t global_hid_keyboard_report[8];
+
+void dbg_printf(const char* format, ...);
 
 /********************************************************************************/
 /* Header File */
@@ -84,7 +83,7 @@ void TIM3_Init( uint16_t arr, uint16_t psc )
  *
  * @return  none
  */
-void TIM3_IRQHandler( void )
+void TIM3_IRQHandler_( void )
 {
     uint8_t index;
     uint8_t hub_port;
@@ -1466,6 +1465,13 @@ uint8_t KB_SetReport( uint8_t index, uint8_t ep0_size, uint8_t intf_num )
     return s;
 }
 
+
+void on_keyboard_report_received(const uint8_t* data, size_t len) {
+    is_usbkeyboard_connected = true;
+    memcpy(global_hid_keyboard_report, data, 8);
+}
+
+
 /*********************************************************************
  * @fn      USBH_MainDeal
  *
@@ -1487,7 +1493,7 @@ void USBH_MainDeal( void )
 #endif
 
     // Clear the flag for Arduino USBHost_Keyboard
-    is_usbkeyboard_connected = 1;
+    is_usbkeyboard_connected = 0;
     
     s = USBFSH_CheckRootHubPortStatus( RootHubDev.bStatus ); // Check USB device connection or disconnection
     if( s == ROOT_DEV_CONNECTED )
@@ -1600,6 +1606,7 @@ void USBH_MainDeal( void )
                         if( s == ERR_SUCCESS )
                         {
 #if DEF_DEBUG_PRINTF
+                            DUG_PRINTF("ENDPOINT %d : ", HostCtl[ index ].Interface[ intf_num ].InEndpAddr[ in_num ]);
                             for( i = 0; i < len; i++ )
                             {
                                 DUG_PRINTF( "%02x ", Com_Buf[ i ] );
@@ -1607,14 +1614,11 @@ void USBH_MainDeal( void )
                             DUG_PRINTF( "\r\n" );
 #endif
 
-                            // Update flag
-                            is_usbkeyboard_connected = 1;
-                            // Copy value for Arduino world.
-                            memcpy(global_hid_keyboard_report, Com_Buf, 8);
-
                             /* Handle keyboard lighting */
                             if( HostCtl[ index ].Interface[ intf_num ].Type == DEC_KEY )
                             {
+                                on_keyboard_report_received(Com_Buf, 8);
+
                                 KB_AnalyzeKeyValue( index, intf_num, Com_Buf, len );
 
                                 if( HostCtl[ index ].Interface[ intf_num ].SetReport_Flag )
@@ -1821,6 +1825,7 @@ void USBH_MainDeal( void )
                                    if( s == ERR_SUCCESS )
                                    {
 #if DEF_DEBUG_PRINTF
+                                        DUG_PRINTF("ENDPOINT %d : ", HostCtl[ index ].Interface[ intf_num ].InEndpAddr[ in_num ]);
                                        for( i = 0; i < len; i++ )
                                        {
                                            DUG_PRINTF( "%02x ", Com_Buf[ i ] );
@@ -1828,13 +1833,10 @@ void USBH_MainDeal( void )
                                        DUG_PRINTF( "\r\n" );
 #endif
 
-                                        // Update flag
-                                        is_usbkeyboard_connected = 1;
-                                        // Copy value for Arduino world.
-                                        memcpy(global_hid_keyboard_report, Com_Buf, 8);
-
                                        if( HostCtl[ index ].Interface[ intf_num ].Type == DEC_KEY )
                                        {
+                                            on_keyboard_report_received(Com_Buf, 8);
+
                                            KB_AnalyzeKeyValue( index, intf_num, Com_Buf, len );
 
                                            if( HostCtl[ index ].Interface[ intf_num ].SetReport_Flag )
@@ -1861,8 +1863,3 @@ void USBH_MainDeal( void )
         }
     }
 }
-
-
-#ifdef __cplusplus
-}
-#endif

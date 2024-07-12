@@ -1,19 +1,5 @@
-/********************************** (C) COPYRIGHT *******************************
-* File Name          : main.c
-* Author             : WCH
-* Version            : V1.0.0
-* Date               : 2022/09/01
-* Description        : Main program body.
-*********************************************************************************
-* Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
-* Attention: This software (modified or not) and binary are used for 
-* microcontroller manufactured by Nanjing Qinheng Microelectronics.
-*******************************************************************************/
-
-/** Modified and ported to Arduino by Mitsumine Suzu (C) 2024 */
-
+#include <Adafruit_TinyUSB.h>
 #include <cstring>
-
 #include <stdarg.h>
 
 
@@ -48,6 +34,24 @@ void serial_write_str(const char* str) {
     }
 }
 
+
+void update_led(unsigned int interval_msec) {
+  static unsigned long timer = 0;
+  static bool isOn = false;
+  if (timer == 0) {
+    pinMode(PA5, OUTPUT);
+    timer = millis();
+    if (timer == 0) {
+      timer = 1;
+    }
+  }
+  if (millis() - timer > interval_msec) {
+    timer = millis();
+    isOn = !isOn;
+    digitalWrite(PA5, isOn ? HIGH : LOW);
+  }
+}
+
 #include "USBHost_Keyboard.h"
 
 USBHostKeyboard USBKeyboard;
@@ -59,12 +63,9 @@ void setup() {
     Serial.println("USBHost Keyboard demo");
     Serial.printf("SystemCoreClock = %u\r\n", SystemCoreClock);
 
-    pinMode(PA5, OUTPUT);
-    for (int i = 0; i < 4; i++) {
-        digitalWrite(PA5, HIGH);
-        delay(250);
-        digitalWrite(PA5, LOW);
-        delay(250);
+    for (unsigned long t = millis(); millis() - t < 1000;) {
+      update_led(250);
+      delay(1);
     }
 
     USBKeyboard.init();
@@ -72,11 +73,14 @@ void setup() {
     Serial.println("Ready.");
 }
 
+
 void loop() {
   static char prev_key = 0;
   USBKeyboard.update();
   
   if (USBKeyboard.available()) {
+    update_led(1000);
+    
       int ch = USBKeyboard.get_key();
 
       if (ch == 0 && prev_key > 0) {
@@ -87,5 +91,8 @@ void loop() {
         Serial.printf(">>>> Pressed 0x%02x\r\n", ch);
         prev_key = (char)ch;
       }
+  } else {
+    
+    update_led(500);
   }
 }
