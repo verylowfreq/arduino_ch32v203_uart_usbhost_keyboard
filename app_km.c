@@ -13,6 +13,8 @@
 #include "stdbool.h"
 #include "stdint.h"
 
+#include "arduino_time.h"
+
 // Global variable for USBHost_Keyboard
 extern int is_usbkeyboard_connected;
 extern uint8_t global_hid_keyboard_report[8];
@@ -195,9 +197,9 @@ uint8_t USBH_EnumRootDevice( void )
     enum_cnt = 0;
 ENUM_START:
     /* Delay and wait for the device to stabilize */
-    Delay_Ms( 100 );
+    delay( 100 );
     enum_cnt++;
-    Delay_Ms( 8 << enum_cnt );
+    delay( 8 << enum_cnt );
 
     /* Reset the USB device and wait for the USB device to reconnect */
     USBFSH_ResetRootHubPort( 0 );
@@ -212,7 +214,7 @@ ENUM_START:
                 break;
             }
         }
-        Delay_Ms( 1 );
+        delay( 1 );
     }
     if( i )
     {
@@ -269,7 +271,7 @@ ENUM_START:
         }
         return DEF_DEV_ADDR_SETFAIL;
     }
-    Delay_Ms( 5 );
+    delay( 5 );
 
     /* Get the USB device configuration descriptor */
     DUG_PRINTF("Get CfgDesc: ");
@@ -1065,7 +1067,7 @@ uint8_t USBH_EnumHubDevice( void )
         }
         else
         {
-            Delay_Ms( 5 );
+            delay( 5 );
 
             i--;
             retry++;
@@ -1164,7 +1166,7 @@ uint8_t HUB_Port_PreEnum2( uint8_t hub_port, uint8_t *pbuf )
             return s;
         }
 
-        Delay_Ms( 10 );
+        delay( 10 );
         do
         {
             s = HUB_GetPortStatus( RootHubDev.bEp0MaxPks, hub_port, &buf[ 0 ] );
@@ -1310,7 +1312,7 @@ uint8_t USBH_EnumHubPortDevice( uint8_t hub_port, uint8_t *paddr, uint8_t *ptype
             }
         }
     }while( ( s != ERR_SUCCESS ) && ( enum_cnt < 10 ) );
-    Delay_Ms( 5 );
+    delay( 5 );
 
     /* Get USB configuration descriptor */
     DUG_PRINTF( "Get DevCfgDesc: \r\n" );
@@ -1714,7 +1716,7 @@ void USBH_MainDeal( void )
                        }
 
                        /* HUB Port PreEnumate Step 2: Set/Clear PORT_RESET */
-                       Delay_Ms( 100 );
+                       delay( 100 );
                        s = HUB_Port_PreEnum2( ( hub_port + 1 ), &hub_dat );
                        if( s == ERR_USB_CONNECT )
                        {

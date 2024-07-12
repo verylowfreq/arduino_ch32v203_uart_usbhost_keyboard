@@ -15,6 +15,8 @@
 /* Header File */
 #include "usb_host_config.h"
 
+#include "arduino_time.h"
+
 /*******************************************************************************/
 /* Variable Definition */
 __attribute__((aligned(4))) uint8_t  USBFS_RX_Buf[ USBFS_MAX_PACKET_SIZE ];     // IN, must even address
@@ -60,7 +62,7 @@ void USBFS_Host_Init( FunctionalState sta )
     {
         /* Reset USB module */
         USBOTG_H_FS->BASE_CTRL = USBFS_UC_RESET_SIE | USBFS_UC_CLR_ALL;
-        Delay_Us( 10 );
+        delay_microseconds( 10 );
         USBOTG_H_FS->BASE_CTRL = 0;
 
         /* Initialize USB host configuration */
@@ -72,7 +74,7 @@ void USBFS_Host_Init( FunctionalState sta )
     else
     {
         USBOTG_H_FS->BASE_CTRL = USBFS_UC_RESET_SIE | USBFS_UC_CLR_ALL;
-        Delay_Us( 10 );
+        delay_microseconds( 10 );
         USBOTG_H_FS->BASE_CTRL = 0;
     }
 }
@@ -201,13 +203,13 @@ void USBFSH_ResetRootHubPort( uint8_t mode )
     }
     if( mode == 0 )
     {
-        Delay_Ms( DEF_BUS_RESET_TIME ); // Reset time from 10mS to 20mS
+        delay( DEF_BUS_RESET_TIME ); // Reset time from 10mS to 20mS
     }
     if( mode != 1 )
     {
         USBOTG_H_FS->HOST_CTRL &= ~USBFS_UH_BUS_RESET; // End reset
     }
-    Delay_Ms( 2 );
+    delay( 2 );
 
     if( USBOTG_H_FS->INT_FG & USBFS_UIF_DETECT )
     {
@@ -272,7 +274,7 @@ uint8_t USBFSH_Transact( uint8_t endp_pid, uint8_t endp_tog, uint16_t timeout )
         USBOTG_H_FS->INT_FG = USBFS_UIF_TRANSFER;  // Allow transfer
         for( i = DEF_WAIT_USB_TRANSFER_CNT; ( i != 0 ) && ( ( USBOTG_H_FS->INT_FG & USBFS_UIF_TRANSFER ) == 0 ); i-- )
         {
-            Delay_Us( 1 ); // Delay for USB transfer
+            delay_microseconds( 1 ); // Delay for USB transfer
         }
         USBOTG_H_FS->HOST_EP_PID = 0x00;  // Stop USB transfer
         if( ( USBOTG_H_FS->INT_FG & USBFS_UIF_TRANSFER ) == 0 )
@@ -325,11 +327,11 @@ uint8_t USBFSH_Transact( uint8_t endp_pid, uint8_t endp_tog, uint16_t timeout )
                     return ERR_USB_UNKNOWN;
             }
         } 
-        Delay_Us( 20 );
+        delay_microseconds( 20 );
 
         if( USBOTG_H_FS->INT_FG & USBFS_UIF_DETECT )
         {
-            Delay_Us( 200 );
+            delay_microseconds( 200 );
 
             if( USBFSH_CheckRootHubPortEnable( ) == 0x00 )
             {
@@ -361,7 +363,7 @@ uint8_t USBFSH_CtrlTransfer( uint8_t ep0_size, uint8_t *pbuf, uint16_t *plen )
     uint8_t  s;
     uint16_t rem_len, rx_len, rx_cnt, tx_cnt;
 
-    Delay_Us( 100 );
+    delay_microseconds( 100 );
     if( plen )
     {
         *plen = 0;
@@ -381,7 +383,7 @@ uint8_t USBFSH_CtrlTransfer( uint8_t ep0_size, uint8_t *pbuf, uint16_t *plen )
             /* Receive data */
             while( rem_len )
             {
-                Delay_Us( 100 );
+                delay_microseconds( 100 );
                 s = USBFSH_Transact( ( USB_PID_IN << 4 ) | 0x00, USBOTG_H_FS->HOST_RX_CTRL, DEF_CTRL_TRANS_TIMEOVER_CNT );  // IN
                 if( s != ERR_SUCCESS )
                 {
@@ -413,7 +415,7 @@ uint8_t USBFSH_CtrlTransfer( uint8_t ep0_size, uint8_t *pbuf, uint16_t *plen )
             /* Send data */
             while( rem_len )
             {
-                Delay_Us( 100 );
+                delay_microseconds( 100 );
                 USBOTG_H_FS->HOST_TX_LEN = ( rem_len >= ep0_size )? ep0_size : rem_len;
                 for( tx_cnt = 0; tx_cnt != USBOTG_H_FS->HOST_TX_LEN; tx_cnt++ )
                 {
@@ -435,7 +437,7 @@ uint8_t USBFSH_CtrlTransfer( uint8_t ep0_size, uint8_t *pbuf, uint16_t *plen )
             }
         }
     }
-    Delay_Us( 100 );
+    delay_microseconds( 100 );
     s = USBFSH_Transact( ( USBOTG_H_FS->HOST_TX_LEN )? ( USB_PID_IN << 4 | 0x00 ) : ( USB_PID_OUT << 4 | 0x00 ), USBFS_UH_R_TOG | USBFS_UH_T_TOG, DEF_CTRL_TRANS_TIMEOVER_CNT ); // STATUS stage
     if( s != ERR_SUCCESS )
     {
@@ -581,7 +583,7 @@ uint8_t USBFSH_SetUsbAddress( uint8_t ep0_size, uint8_t addr )
         return s;
     }
     USBFSH_SetSelfAddr( addr );
-    Delay_Ms( DEF_BUS_RESET_TIME >> 1 ); // Wait for the USB device to complete its operation.
+    delay( DEF_BUS_RESET_TIME >> 1 ); // Wait for the USB device to complete its operation.
     return ERR_SUCCESS;
 }
 

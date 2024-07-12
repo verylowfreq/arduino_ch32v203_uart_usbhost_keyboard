@@ -57,7 +57,6 @@ void update_led(unsigned int interval_msec) {
 USBHostKeyboard USBKeyboard;
 
 void setup() {
-    Delay_Init( );
     Serial.begin(115200);
     Serial.println("Initializing...");
     Serial.println("USBHost Keyboard demo");
@@ -79,8 +78,6 @@ void loop() {
   USBKeyboard.update();
   
   if (USBKeyboard.available()) {
-    update_led(1000);
-    
       int ch = USBKeyboard.get_key();
 
       if (ch == 0 && prev_key > 0) {
@@ -91,8 +88,7 @@ void loop() {
         Serial.printf(">>>> Pressed 0x%02x\r\n", ch);
         prev_key = (char)ch;
       }
-  } else {
-    
-    update_led(500);
   }
+
+  update_led(500);
 }
